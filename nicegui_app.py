@@ -627,21 +627,105 @@ def build_system_prompt(fixed_phase: Optional[str] = None, is_first_today: bool 
     return prompt
 
 
-def generate_response(user_input: str, user_id: str) -> str:
-    s = user_store()
-    today_str = date.today().isoformat()
+def build_system_prompt_from_state(
+    slots: Dict[str, str],
+    fixed_phase: Optional[str] = None,
+    is_first_today: bool = False,
+) -> str:
+    """別スレッドでも安全に使えるSystem Prompt生成。app.storageやuiを触らない。"""
+    prompt = ""
+    prompt += "あなたは不登校・ひきこもり支援の専門家です。\n"
+    prompt += "利用者に共感し、責めず、安全を優先し、現実的で具体的な一歩を提案してください。\n"
+    prompt += "知識ベース（phases/compass_principles/key_scenes/slot_schema/action_cards）に基づいて応答してください。\n\n"
+    prompt += "【重要ルール】\n"
+    prompt += "- 出力は必ず「JSONのみ」。本文の外に説明や注釈、Markdown、コードブロックを書かない。\n"
+    prompt += "- 推測でスロットを埋めない。根拠が弱い場合は「不明」のまま。\n"
+    prompt += "- 回答の最後に、必ず1〜2個の具体的な確認質問を含める。\n"
+    prompt += "- その質問は、次の支援分岐に直結する内容にする。\n"
+    prompt += "- 質問は自然な会話文として response の中に書く（箇条書きにしない）。\n"
+    prompt += "- action_cards は最大3枚まで選ぶ。\n"
+    prompt += "- ただし、質問や支援カードの内容はUIに別表示しないため、必ず response の文章の中に自然に含める。\n"
+    prompt += "- 緊急性が高い可能性があるときは、安全確保の確認を優先する。\n"
+    prompt += "- 抽象的な理念だけで終わらせない。\n"
+    prompt += "- 必ず具体的な声かけ例を最低2つ提示する。\n"
+    prompt += "- 必ず段階的な小さな行動例（0か100かではない中間案）を2つ以上提示する。\n"
+    prompt += "- 明日そのまま使える表現にする。\n"
+    prompt += "- 命令口調や断定は避ける。\n"
+    prompt += "- 実務性と安心感のバランスを取る。\n\n"
+    prompt += "【出力構造強化ルール（具体性向上のための追加指示）】\n"
+    prompt += "- 回答は次の順序で構成する。\n"
+    prompt += "  ① 共感（2〜3文で簡潔に）\n"
+    prompt += "  ② 具体的な支援策（本文の中心・最も分量を多くする）\n"
+    prompt += "  ③ なぜその支援が適切かの短い説明\n"
+    prompt += "  ④ 次の判断に必要な確認質問（1〜2個）\n"
+    prompt += "- 具体的支援策は最低3つ提示する。\n"
+    prompt += "- 行動例は『今日できること』と『今週試せること』の2段階で示す。\n"
+    prompt += "- 必ず家庭内の実際の会話場面を想定した具体例を書く。\n"
+    prompt += "- 抽象的助言（例：見守ることが大切、安心環境を整える等）だけで終わってはならない。\n\n"
+    prompt += "【臨床具体性強化ルール（最終強化版）】\n"
+    prompt += "- 初回回答では、相談者が“明日そのまま実行できる行動”を最低3つ提示する。\n"
+    prompt += "- 行動は抽象語（見守る・寄り添う等）で表現してはならない。\n"
+    prompt += "- 各提案は、家庭内の具体的場面を想定して描写する（例：夕食時、買い物後、就寝前など）。\n"
+    prompt += "- 少なくとも2つは、親がそのまま使える会話文を『』で示す。\n"
+    prompt += "- 会話文は評価・誘導・説得を含まない表現にする。\n"
+    prompt += "- 登校を促す／促さないの判断基準を明示する（本人の自発性・感情の質・不安の強さなど）。\n"
+    prompt += "- 0か100かではなく、“登校未満の接触”を必ず含める（例：校門まで散歩、HP閲覧、写真を見る等）。\n"
+    prompt += "- 提案は必ず現在のフェーズと整合していることを前提にする。\n"
+    prompt += "- 行動提案は自然な会話文の流れの中で、無理のない順序として示す。\n"
+    prompt += "- 説明書のような区分（例：今日できること、今週試すこと等）は用いない。\n"
+    prompt += "- 段階性は文章内に自然に含める。\n"
+    prompt += "- 回答の中心は具体策とし、共感部分は簡潔にとどめる。\n"
+    prompt += "- 一般論のみの回答は不十分とみなす。\n\n"
 
-    is_first_today = len(s["chat_history"]) == 0 or s["current_phase"] is None
-    fixed_phase = None if is_first_today else s["current_phase"]
+    if is_first_today:
+        prompt += "今日はその日の最初の相談です。発言内容から phase_1〜phase_4 を一つだけ推定してください。\n"
+    else:
+        prompt += f"本日のフェーズは {fixed_phase} に固定です。再推定してはいけません。\n"
+
+    prompt += "\n【あなたが返すJSON形式】\n"
+    prompt += "{\n"
+    prompt += '  "phase": "phase_1|phase_2|phase_3|phase_4",\n'
+    prompt += '  "slots_update": { "SLOT_KEY": "VALUE", "...": "..." },\n'
+    prompt += '  "questions": ["質問1","質問2"],\n'
+    prompt += '  "selected_action_card_ids": ["AC_...","AC_..."],\n'
+    prompt += '  "response": "相談者への回答（この文章の中に、確認質問も、具体支援も、次の一歩も全部含める）"\n'
+    prompt += "}\n\n"
+
+    prompt += "【現在のスロット（既知情報）】\n"
+    prompt += json.dumps(slots, ensure_ascii=False, indent=2) + "\n\n"
+
+    prompt += "【知識ベース】\n"
+    prompt += json.dumps(knowledge_base, ensure_ascii=False, indent=2)
+
+    return prompt
+
+
+def generate_response_background(
+    user_input: str,
+    user_id: str,
+    chat_history: List[Dict[str, str]],
+    current_phase: Optional[str],
+    slots: Dict[str, str],
+) -> Dict[str, Any]:
+    """OpenAI/Supabase処理のみを行う別スレッド用関数。ui/app.storageは絶対に触らない。"""
+    today_str = date.today().isoformat()
+    warnings: List[str] = []
+
+    is_first_today = len(chat_history) == 0 or current_phase is None
+    fixed_phase = None if is_first_today else current_phase
 
     messages = [
         {
             "role": "system",
-            "content": build_system_prompt(fixed_phase=fixed_phase, is_first_today=is_first_today),
+            "content": build_system_prompt_from_state(
+                slots=slots,
+                fixed_phase=fixed_phase,
+                is_first_today=is_first_today,
+            ),
         }
     ]
 
-    for chat in s["chat_history"]:
+    for chat in chat_history:
         messages.append({"role": "user", "content": f"相談者の発言: {chat['user']}"})
         messages.append({"role": "assistant", "content": chat["bot"]})
 
@@ -654,44 +738,33 @@ def generate_response(user_input: str, user_id: str) -> str:
     )
     raw = resp.choices[0].message.content.strip()
 
+    phase_for_row = current_phase or "phase_1"
+    new_phase = current_phase
+    new_slots = dict(slots)
+
     try:
         obj = safe_json_load(raw)
     except Exception as exc:
         response_text = raw
-        phase_for_row = s["current_phase"] or "phase_1"
-        try:
-            supabase.table("user_chats").insert(
-                {
-                    "user_id": user_id,
-                    "chat_date": today_str,
-                    "user_message": user_input,
-                    "bot_message": response_text,
-                    "phase": phase_for_row,
-                }
-            ).execute()
-        except Exception as save_exc:
-            ui.notify(f"会話の保存中にエラーが発生しました: {save_exc}", type="negative")
-        ui.notify(f"AIの出力JSONの解析に失敗しました: {exc}", type="warning")
-        return response_text
+        warnings.append(f"AIの出力JSONの解析に失敗しました: {exc}")
+    else:
+        phase_out = normalize_phase(obj.get("phase", "phase_1"))
+        if is_first_today:
+            new_phase = phase_out
+        phase_for_row = new_phase or phase_out
 
-    phase_out = normalize_phase(obj.get("phase", "phase_1"))
-    if is_first_today:
-        s["current_phase"] = phase_out
+        slots_update = obj.get("slots_update", {}) or {}
+        for k in new_slots.keys():
+            if k in slots_update:
+                v = slots_update.get(k)
+                if isinstance(v, str):
+                    v_norm = validate_slot_value(k, v)
+                    if v_norm != "不明":
+                        new_slots[k] = v_norm
 
-    phase_for_row = s["current_phase"] or phase_out
-
-    slots_update = obj.get("slots_update", {}) or {}
-    for k in s["slots"].keys():
-        if k in slots_update:
-            v = slots_update.get(k)
-            if isinstance(v, str):
-                v_norm = validate_slot_value(k, v)
-                if v_norm != "不明":
-                    s["slots"][k] = v_norm
-
-    response_text = obj.get("response", "").strip()
-    if not response_text:
-        response_text = "（すみません、うまく回答を生成できませんでした。もう一度、状況を短く教えてください。）"
+        response_text = obj.get("response", "").strip()
+        if not response_text:
+            response_text = "（すみません、うまく回答を生成できませんでした。もう一度、状況を短く教えてください。）"
 
     try:
         supabase.table("user_chats").insert(
@@ -704,9 +777,14 @@ def generate_response(user_input: str, user_id: str) -> str:
             }
         ).execute()
     except Exception as exc:
-        ui.notify(f"会話の保存中にエラーが発生しました: {exc}", type="negative")
+        warnings.append(f"会話の保存中にエラーが発生しました: {exc}")
 
-    return response_text
+    return {
+        "response_text": response_text,
+        "current_phase": new_phase,
+        "slots": new_slots,
+        "warnings": warnings,
+    }
 
 
 # ============================================================
@@ -1131,8 +1209,20 @@ def show_main_page() -> None:
                                 ui.run_javascript("setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}), 50)")
 
                                 try:
-                                    # OpenAI/Supabase処理を別スレッドに逃がし、NiceGUIのWebSocketをブロックしない
-                                    response_text = await asyncio.to_thread(generate_response, user_text, user_id)
+                                    # UIを触らない処理だけを別スレッドへ逃がす
+                                    result = await asyncio.to_thread(
+                                        generate_response_background,
+                                        user_text,
+                                        user_id,
+                                        list(s["chat_history"]),
+                                        s.get("current_phase"),
+                                        dict(s["slots"]),
+                                    )
+                                    response_text = result["response_text"]
+                                    s["current_phase"] = result.get("current_phase")
+                                    s["slots"] = result.get("slots", s["slots"])
+                                    for warning in result.get("warnings", []):
+                                        ui.notify(warning, type="warning")
                                 except Exception as exc:
                                     response_text = f"エラー: {exc}"
                                     ui.notify(f"エラー: {exc}", type="negative")
