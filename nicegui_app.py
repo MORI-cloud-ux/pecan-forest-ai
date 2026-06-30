@@ -35,7 +35,7 @@ import asyncio
 import json
 import os
 import re
-from datetime import date
+from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -75,6 +75,16 @@ APP_SUBTITLE = "安心して、なんでもご相談ください。"
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
+
+# ============================================================
+# 日付管理
+# ============================================================
+
+def today_iso() -> str:
+    """日本時間（JST）基準の今日の日付を返す。Render等のUTC環境でも日跨ぎを安定させる。"""
+    return datetime.now(timezone(timedelta(hours=9))).date().isoformat()
+
+
 
 # --- ペカンの森：PWA/ホーム画面用アイコンを自動生成 ---
 PECAN_FOREST_ICON_SVG = r'''
@@ -201,6 +211,43 @@ ui.add_head_html("""
 <meta name="apple-mobile-web-app-title" content="相談AI">
 <link rel="apple-touch-icon" href="/static/icon-192.png">
 <link rel="icon" type="image/svg+xml" href="/static/pecan-forest-icon.svg">
+""", shared=True)
+
+
+# スマホ/PWAでページを開きっぱなしにしたまま日を跨いだ場合に自動更新する。
+ui.add_head_html("""
+<script>
+(function () {
+  function todayLocalISO() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  const KEY = 'pecan_forest_open_date';
+  const openedDate = todayLocalISO();
+  try { sessionStorage.setItem(KEY, openedDate); } catch (e) {}
+
+  function checkDateRollover() {
+    const nowDate = todayLocalISO();
+    let savedDate = openedDate;
+    try { savedDate = sessionStorage.getItem(KEY) || openedDate; } catch (e) {}
+
+    if (nowDate !== savedDate) {
+      try { sessionStorage.setItem(KEY, nowDate); } catch (e) {}
+      window.location.reload();
+    }
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) checkDateRollover();
+  });
+  window.addEventListener('focus', checkDateRollover);
+  setInterval(checkDateRollover, 60000);
+})();
+</script>
 """, shared=True)
 
 # ============================================================
@@ -1311,13 +1358,13 @@ def user_store() -> Dict[str, Any]:
     if "slots" not in s:
         s["slots"] = default_slots_from_schema(SLOT_SCHEMA)
     if "view_date" not in s:
-        s["view_date"] = date.today().isoformat()
+        s["view_date"] = today_iso()
     if "active_view" not in s:
         s["active_view"] = "consult"
     if "app_date" not in s:
-        s["app_date"] = date.today().isoformat()
+        s["app_date"] = today_iso()
 
-    today_str = date.today().isoformat()
+    today_str = today_iso()
     if s["app_date"] != today_str:
         s["app_date"] = today_str
         s["chat_history"] = []
@@ -1357,9 +1404,9 @@ def reset_user_session() -> None:
     s["chat_history"] = []
     s["current_phase"] = None
     s["slots"] = default_slots_from_schema(SLOT_SCHEMA)
-    s["view_date"] = date.today().isoformat()
+    s["view_date"] = today_iso()
     s["active_view"] = "consult"
-    s["app_date"] = date.today().isoformat()
+    s["app_date"] = today_iso()
 
 
 # ============================================================
@@ -1368,7 +1415,7 @@ def reset_user_session() -> None:
 
 def load_today_history(user_id: str) -> None:
     s = user_store()
-    today_str = date.today().isoformat()
+    today_str = today_iso()
 
     try:
         res = (
@@ -1401,7 +1448,7 @@ def load_today_history(user_id: str) -> None:
 
 
 def get_date_options(user_id: str) -> List[str]:
-    today_str = date.today().isoformat()
+    today_str = today_iso()
     try:
         res_dates = (
             supabase.table("user_chats")
@@ -1651,7 +1698,7 @@ def generate_response_background(
     slots: Dict[str, str],
 ) -> Dict[str, Any]:
     """OpenAI/Supabase処理のみを行う別スレッド用関数。ui/app.storageは絶対に触らない。"""
-    today_str = date.today().isoformat()
+    today_str = today_iso()
     warnings: List[str] = []
 
     is_first_today = len(chat_history) == 0 or current_phase is None
@@ -1865,7 +1912,7 @@ def render_history_page() -> None:
             for item in timeline[::-1]:
                 d = item.get("chat_date", "")
                 phase = item.get("phase", "")
-                heading = "今日" if d == date.today().isoformat() else d
+                heading = "今日" if d == today_iso() else d
                 if heading != last_heading:
                     ui.label(heading).classes("section-label mt-2")
                     last_heading = heading
@@ -2097,12 +2144,12 @@ def show_main_page() -> None:
         ui.navigate.reload()
         return
 
-    if not s.get("chat_history") and s.get("view_date") == date.today().isoformat():
+    if not s.get("chat_history") and s.get("view_date") == today_iso():
         load_today_history(user_id)
 
     app_header()
 
-    today_str = date.today().isoformat()
+    today_str = today_iso()
     view_date = s.get("view_date", today_str)
     active_view = s.get("active_view", "consult")
 
