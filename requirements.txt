@@ -1,0 +1,5 @@
+nicegui
+openai
+supabase
+python-dotenv
+uvicorn
