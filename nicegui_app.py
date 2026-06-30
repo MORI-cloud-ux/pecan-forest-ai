@@ -1018,116 +1018,6 @@ body, html, .nicegui-content {
 </style>
 """, shared=True)
 
-
-
-# ============================================================
-# 2.5. スマホ入力欄固定：ChatGPT風に常時画面下へ表示
-# ============================================================
-ui.add_head_html("""
-<style>
-/* ============================================================
-   入力欄を常に画面内に残す最終調整
-   - チャット本文だけをスクロール
-   - 入力欄は下部に固定
-   - iPhone/Androidのアドレスバー変動に強い 100dvh 対応
-   ============================================================ */
-
-:root {
-  --app-header-height: 70px;
-}
-
-.chatgpt-main {
-  min-height: calc(100dvh - var(--app-header-height)) !important;
-  height: calc(100dvh - var(--app-header-height)) !important;
-  overflow: hidden !important;
-}
-
-.chat-shell {
-  height: calc(100dvh - var(--app-header-height)) !important;
-  max-height: calc(100dvh - var(--app-header-height)) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-}
-
-.chat-scroll-area {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  overscroll-behavior: contain !important;
-  padding-bottom: 16px !important;
-}
-
-.chat-input-fixed {
-  position: sticky !important;
-  bottom: 0 !important;
-  z-index: 120 !important;
-  flex: 0 0 auto !important;
-  background: rgba(255, 255, 255, 0.98) !important;
-  border-top: 1px solid rgba(111, 167, 122, 0.18) !important;
-  box-shadow: 0 -10px 28px rgba(54, 92, 62, 0.08) !important;
-  padding: 10px 14px max(12px, env(safe-area-inset-bottom)) !important;
-}
-
-.chat-input-fixed .q-field__control {
-  min-height: 46px !important;
-}
-
-.chat-input-fixed textarea {
-  max-height: 132px !important;
-  overflow-y: auto !important;
-}
-
-.security-note-compact {
-  padding-top: 5px !important;
-  padding-bottom: 0 !important;
-}
-
-@media (max-width: 700px) {
-  :root {
-    --app-header-height: 70px;
-  }
-
-  body, html, .nicegui-content {
-    height: 100dvh !important;
-    overflow: hidden !important;
-  }
-
-  .page-wrap.chatgpt-page {
-    height: calc(100dvh - var(--app-header-height)) !important;
-    overflow: hidden !important;
-  }
-
-  .chatgpt-main {
-    height: calc(100dvh - var(--app-header-height)) !important;
-    min-height: calc(100dvh - var(--app-header-height)) !important;
-  }
-
-  .chat-shell {
-    height: calc(100dvh - var(--app-header-height)) !important;
-    max-height: calc(100dvh - var(--app-header-height)) !important;
-    border-radius: 0 !important;
-  }
-
-  .chat-head-compact {
-    flex: 0 0 auto !important;
-  }
-
-  .chat-scroll-area {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-    padding: 12px 10px 14px !important;
-  }
-
-  .chat-input-fixed {
-    padding: 8px 10px max(10px, env(safe-area-inset-bottom)) !important;
-  }
-}
-</style>
-""", shared=True)
-
 # ============================================================
 # 3. 知識ベースJSONの読み込み
 # ============================================================
@@ -2103,6 +1993,141 @@ def show_main_page() -> None:
                     else:
                         ui.label("※ 過去の履歴を閲覧中です。入力するには『今日』を選択してください。").classes("small-muted p-4")
 
+
+
+
+# ============================================================
+# 追加修正: スマホで入力欄が画面外へ落ちないようにする最終CSS
+# ============================================================
+ui.add_head_html("""
+<style>
+/* mobile browser のアドレスバー変動に強い 100dvh 固定レイアウト */
+html, body, .nicegui-content {
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+.top-bar {
+  height: 64px !important;
+}
+
+.header-inner {
+  height: 64px !important;
+}
+
+.page-wrap.chatgpt-page {
+  height: calc(100dvh - 64px) !important;
+  max-height: calc(100dvh - 64px) !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.chatgpt-main {
+  height: calc(100dvh - 64px) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.chat-shell {
+  height: calc(100dvh - 64px) !important;
+  max-height: calc(100dvh - 64px) !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border-radius: 0 !important;
+}
+
+.chat-head-compact {
+  flex: 0 0 auto !important;
+}
+
+.chat-scroll-area {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding-bottom: 14px !important;
+}
+
+.chat-input-fixed {
+  flex: 0 0 auto !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 80 !important;
+  padding-bottom: max(10px, env(safe-area-inset-bottom)) !important;
+  background: rgba(255,255,255,0.98) !important;
+}
+
+.chat-input-fixed .q-textarea .q-field__control,
+.chat-input-fixed .q-field__control {
+  min-height: 46px !important;
+}
+
+.chat-input-fixed textarea {
+  max-height: 96px !important;
+  overflow-y: auto !important;
+}
+
+.security-note-compact {
+  display: none !important;
+}
+
+@media (max-width: 700px) {
+  .top-bar { height: 64px !important; }
+  .header-inner { height: 64px !important; }
+
+  .app-title-compact {
+    max-width: 170px !important;
+    font-size: 12px !important;
+    line-height: 1.15 !important;
+  }
+
+  .phase-mini-chip {
+    display: none !important;
+  }
+
+  .top-tab {
+    min-width: auto !important;
+    padding: 0 6px !important;
+    font-size: 11.5px !important;
+  }
+
+  .page-wrap.chatgpt-page,
+  .chatgpt-main,
+  .chat-shell {
+    height: calc(100dvh - 64px) !important;
+    max-height: calc(100dvh - 64px) !important;
+  }
+
+  .chat-head-compact {
+    padding: 9px 10px 7px !important;
+  }
+
+  .chat-title-compact {
+    font-size: 15px !important;
+  }
+
+  .phase-inline {
+    font-size: 11.5px !important;
+  }
+
+  .chat-scroll-area {
+    padding: 12px 9px 10px !important;
+  }
+
+  .chat-input-fixed {
+    padding: 8px 9px max(9px, env(safe-area-inset-bottom)) !important;
+  }
+
+  .chat-input-fixed .q-btn {
+    width: 46px !important;
+    height: 46px !important;
+  }
+}
+</style>
+""", shared=True)
 
 # ============================================================
 # 11. ルーティング
