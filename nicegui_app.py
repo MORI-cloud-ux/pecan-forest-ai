@@ -2,7 +2,7 @@
 # ============================================================
 # 不登校・ひきこもり相談AIエージェント NiceGUI版
 # Streamlit版からの移植版：OpenAI / Supabase / knowledge_base.json 対応
-# デザイン調整版: ペカンの森ブランド表示、見立てチップ、スマホ表示最適化、非同期応答、自然スクロール、JSON解析通知非表示
+# デザイン調整版: 相談画面内見立てカード、ペカンの森ブランド表示、スマホ表示最適化、非同期応答、自然スクロール、JSON解析通知非表示
 # ============================================================
 #
 # 必要ファイル:
@@ -71,7 +71,7 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 APP_TITLE = "不登校・ひきこもり相談AIエージェント"
-APP_SUBTITLE = "安心して、どんなことでもお気軽にご相談ください。。"
+APP_SUBTITLE = "安心して、なんでもご相談ください。"
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
@@ -499,6 +499,154 @@ html, body, .nicegui-content {
   }
   .phase-status-value {
     font-size: 11.5px;
+  }
+}
+
+
+/* ============================================================
+   相談画面：見立てカードを主役にしたスマホ向けレイアウト
+   ============================================================ */
+.consult-intro {
+  padding-bottom: 10px;
+}
+.consult-lead {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.65;
+  margin-top: 3px;
+}
+.consult-action-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.consult-action-button {
+  min-width: 112px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(79,138,96,0.24);
+  background: rgba(255,255,255,0.82);
+  box-shadow: var(--shadow-sm);
+  color: var(--green-800);
+  font-weight: 900;
+  cursor: pointer;
+}
+.consult-phase-summary {
+  margin: 4px 16px 4px;
+  padding: 22px 24px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.94), rgba(247,251,243,0.92));
+  border: 1px solid rgba(111,167,122,0.20);
+  box-shadow: 0 12px 34px rgba(54, 92, 62, 0.08);
+}
+.consult-phase-topline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.consult-phase-caption {
+  color: var(--green-900);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+.consult-phase-chip {
+  border-radius: 999px;
+  padding: 8px 16px;
+  background: rgba(234,245,234,0.96);
+  color: var(--green-900);
+  font-size: 14px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.consult-phase-title {
+  color: var(--green-900);
+  font-weight: 950;
+  letter-spacing: -0.035em;
+  font-size: 34px;
+  line-height: 1.22;
+  margin-bottom: 12px;
+}
+.consult-phase-description {
+  color: #4d5c51;
+  font-size: 16px;
+  line-height: 1.95;
+  margin-bottom: 20px;
+}
+.consult-phase-progress {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.consult-phase-bar {
+  height: 13px;
+  border-radius: 999px;
+  background: rgba(221,235,221,0.82);
+  border: 1px solid rgba(111,167,122,0.18);
+  box-shadow: inset 0 1px 2px rgba(54,92,62,0.06);
+}
+.consult-phase-bar-active {
+  background: var(--green-600);
+  border-color: var(--green-600);
+  box-shadow: 0 0 0 5px rgba(111,167,122,0.12);
+}
+.chat-date-separator {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: center;
+  width: 100%;
+  margin: 2px 0 10px;
+}
+
+@media (max-width: 600px) {
+  .consult-intro { padding-bottom: 6px; }
+  .consult-lead {
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .consult-action-row {
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .consult-action-button {
+    min-width: calc(50% - 4px);
+    justify-content: center;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .consult-phase-summary {
+    margin: 2px 12px 2px;
+    padding: 18px 16px 17px;
+    border-radius: 22px;
+  }
+  .consult-phase-caption {
+    font-size: 16px;
+  }
+  .consult-phase-chip {
+    font-size: 13px;
+    padding: 7px 13px;
+  }
+  .consult-phase-title {
+    font-size: 29px;
+    margin-bottom: 10px;
+  }
+  .consult-phase-description {
+    font-size: 15px;
+    line-height: 1.85;
+    margin-bottom: 18px;
+  }
+  .consult-phase-progress {
+    gap: 10px;
+  }
+  .consult-phase-bar {
+    height: 12px;
+  }
+  .chat-area {
+    padding-top: 12px;
   }
 }
 
@@ -1066,6 +1214,31 @@ def render_phase_status_badge(current_phase: Optional[str], on_click: Optional[A
             value_label = ui.label(phase_text).classes("phase-status-value")
     return value_label
 
+
+
+def render_consult_phase_summary(container: ui.element, current_phase: Optional[str]) -> None:
+    """相談画面上部に、現在の見立てを大きく表示する。"""
+    container.clear()
+    active_index = {"phase_1": 0, "phase_2": 1, "phase_3": 2, "phase_4": 3}.get(current_phase, -1)
+    phase_short = PHASE_SHORT_LABELS.get(current_phase, "未推定")
+    phase_desc = PHASE_DESCRIPTIONS.get(
+        current_phase,
+        "最初の相談内容を送信すると、その日の状態に合わせて見立てが表示されます。診断ではなく、関わり方を考えるための目安です。",
+    )
+    title_text = phase_short if current_phase in PHASE_SHORT_LABELS else "まだ見立てはありません"
+
+    with container:
+        with ui.column().classes("consult-phase-summary w-full"):
+            with ui.row().classes("consult-phase-topline"):
+                ui.label("現在の見立て").classes("consult-phase-caption")
+                ui.label(phase_short).classes("consult-phase-chip")
+            ui.label(title_text).classes("consult-phase-title")
+            ui.label(phase_desc).classes("consult-phase-description")
+            with ui.row().classes("consult-phase-progress w-full"):
+                for i in range(4):
+                    cls = "consult-phase-bar consult-phase-bar-active" if i <= active_index and active_index >= 0 else "consult-phase-bar"
+                    ui.html(f'<div class="{cls}"></div>')
+
 def set_active_view(view: str) -> None:
     s = user_store()
     s["active_view"] = view
@@ -1243,7 +1416,7 @@ def render_chat_area(container: ui.element, display_history: List[Dict[str, str]
                 ui.icon("forum").classes("text-5xl text-green-300")
                 ui.label("まだ相談はありません。下の入力欄から、今の状況を短く教えてください。").classes("small-muted text-center")
         else:
-            ui.label("今日").classes("small-muted text-center w-full")
+            ui.label("今日").classes("chat-date-separator")
             for chat in display_history:
                 render_chat_message("user", chat.get("user", ""))
                 render_chat_message("assistant", chat.get("bot", ""))
@@ -1408,15 +1581,23 @@ def show_main_page() -> None:
                     phase_label = PHASE_LABELS.get(phase_for_view, "未推定")
 
                     with ui.card().classes("app-card w-full p-0"):
-                        with ui.column().classes("w-full p-4 gap-0"):
-                            with ui.row().classes("consult-card-head items-center justify-between w-full"):
-                                with ui.row().classes("items-center gap-2 consult-title-block"):
-                                    ui.icon("chat_bubble_outline").classes("text-green-700")
-                                    ui.label("AIエージェントに相談する").classes("consult-title")
-                                phase_status_label = render_phase_status_badge(
-                                    phase_for_view,
-                                    on_click=lambda: set_active_view("insight"),
-                                )
+                        with ui.column().classes("w-full p-4 gap-0 consult-intro"):
+                            with ui.row().classes("consult-card-head items-start justify-between w-full"):
+                                with ui.column().classes("consult-title-block gap-0"):
+                                    with ui.row().classes("items-center gap-2"):
+                                        ui.icon("chat_bubble_outline").classes("text-green-700")
+                                        ui.label("AIエージェントに相談する").classes("consult-title")
+                                    ui.label(APP_SUBTITLE).classes("consult-lead")
+                                with ui.row().classes("consult-action-row"):
+                                    with ui.row().classes("consult-action-button items-center gap-2").on("click", lambda: set_active_view("insight")):
+                                        ui.icon("favorite_border")
+                                        ui.label("見立て")
+                                    with ui.row().classes("consult-action-button items-center gap-2").on("click", lambda: set_active_view("history")):
+                                        ui.icon("history")
+                                        ui.label("履歴")
+
+                        phase_summary_container = ui.column().classes("w-full")
+                        render_consult_phase_summary(phase_summary_container, phase_for_view)
 
                         chat_container = ui.column().classes("chat-area w-full")
                         render_chat_area(chat_container, display_history)
@@ -1465,8 +1646,7 @@ def show_main_page() -> None:
                                 s["chat_history"].append({"user": user_text, "bot": response_text})
 
                                 phase_for_view_now = s.get("current_phase")
-                                phase_label_now = PHASE_LABELS.get(phase_for_view_now, "未推定")
-                                phase_status_label.set_text(PHASE_SHORT_LABELS.get(phase_for_view_now, "未推定"))
+                                render_consult_phase_summary(phase_summary_container, phase_for_view_now)
 
                                 send_button.enable()
                                 render_chat_area(chat_container, s["chat_history"])
