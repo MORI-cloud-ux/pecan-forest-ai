@@ -1018,6 +1018,116 @@ body, html, .nicegui-content {
 </style>
 """, shared=True)
 
+
+
+# ============================================================
+# 2.5. スマホ入力欄固定：ChatGPT風に常時画面下へ表示
+# ============================================================
+ui.add_head_html("""
+<style>
+/* ============================================================
+   入力欄を常に画面内に残す最終調整
+   - チャット本文だけをスクロール
+   - 入力欄は下部に固定
+   - iPhone/Androidのアドレスバー変動に強い 100dvh 対応
+   ============================================================ */
+
+:root {
+  --app-header-height: 70px;
+}
+
+.chatgpt-main {
+  min-height: calc(100dvh - var(--app-header-height)) !important;
+  height: calc(100dvh - var(--app-header-height)) !important;
+  overflow: hidden !important;
+}
+
+.chat-shell {
+  height: calc(100dvh - var(--app-header-height)) !important;
+  max-height: calc(100dvh - var(--app-header-height)) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.chat-scroll-area {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  padding-bottom: 16px !important;
+}
+
+.chat-input-fixed {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 120 !important;
+  flex: 0 0 auto !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-top: 1px solid rgba(111, 167, 122, 0.18) !important;
+  box-shadow: 0 -10px 28px rgba(54, 92, 62, 0.08) !important;
+  padding: 10px 14px max(12px, env(safe-area-inset-bottom)) !important;
+}
+
+.chat-input-fixed .q-field__control {
+  min-height: 46px !important;
+}
+
+.chat-input-fixed textarea {
+  max-height: 132px !important;
+  overflow-y: auto !important;
+}
+
+.security-note-compact {
+  padding-top: 5px !important;
+  padding-bottom: 0 !important;
+}
+
+@media (max-width: 700px) {
+  :root {
+    --app-header-height: 70px;
+  }
+
+  body, html, .nicegui-content {
+    height: 100dvh !important;
+    overflow: hidden !important;
+  }
+
+  .page-wrap.chatgpt-page {
+    height: calc(100dvh - var(--app-header-height)) !important;
+    overflow: hidden !important;
+  }
+
+  .chatgpt-main {
+    height: calc(100dvh - var(--app-header-height)) !important;
+    min-height: calc(100dvh - var(--app-header-height)) !important;
+  }
+
+  .chat-shell {
+    height: calc(100dvh - var(--app-header-height)) !important;
+    max-height: calc(100dvh - var(--app-header-height)) !important;
+    border-radius: 0 !important;
+  }
+
+  .chat-head-compact {
+    flex: 0 0 auto !important;
+  }
+
+  .chat-scroll-area {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    padding: 12px 10px 14px !important;
+  }
+
+  .chat-input-fixed {
+    padding: 8px 10px max(10px, env(safe-area-inset-bottom)) !important;
+  }
+}
+</style>
+""", shared=True)
+
 # ============================================================
 # 3. 知識ベースJSONの読み込み
 # ============================================================
