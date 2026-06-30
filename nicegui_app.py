@@ -2,7 +2,7 @@
 # ============================================================
 # 不登校・ひきこもり相談AIエージェント NiceGUI版
 # Streamlit版からの移植版：OpenAI / Supabase / knowledge_base.json 対応
-# デザイン最終版: ペカンの森ロゴ、自然AIエージェント、3画面ナビ、スマホ最適化
+# デザイン最終版: ペカンの森ロゴ、自然AIエージェント、3画面ナビ、スマホ最適化、非同期応答、自然スクロール対応
 # ============================================================
 #
 # 必要ファイル:
@@ -31,6 +31,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import re
@@ -280,12 +281,12 @@ body.body--dark { background: #111; }
 .phase-number-active { background: var(--green-600); color: white; border-color: var(--green-600); }
 .phase-name-active { color: var(--green-900); font-weight: 900; }
 
-.chat-area { height: calc(100vh - 370px); min-height: 420px; overflow-y: auto; padding: 24px 18px 14px; scroll-behavior: smooth; background: linear-gradient(180deg, rgba(255,255,255,0.36), rgba(255,255,255,0.08)); }
+.chat-area { height: auto; min-height: 260px; overflow: visible; padding: 24px 18px 14px; scroll-behavior: smooth; background: linear-gradient(180deg, rgba(255,255,255,0.36), rgba(255,255,255,0.08)); }
 .chat-bubble-user { background: linear-gradient(135deg, #e1f6d6, #d4f0c5); border-radius: 20px 20px 5px 20px; padding: 14px 16px; max-width: min(76%, 620px); margin-left: auto; margin-bottom: 14px; box-shadow: var(--shadow-sm); white-space: pre-wrap; line-height: 1.9; }
 .chat-bubble-ai { background: #ffffff; border: 1px solid var(--line); border-radius: 20px 20px 20px 5px; padding: 16px 18px; max-width: min(84%, 680px); margin-right: auto; margin-bottom: 14px; box-shadow: var(--shadow-sm); white-space: pre-wrap; line-height: 1.95; }
 .ai-avatar { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; margin-right: 10px; background: linear-gradient(135deg, #f1f8ee 0%, #ffffff 100%); color: var(--green-700); border: 1px solid rgba(111,167,122,0.28); box-shadow: var(--shadow-sm); flex: 0 0 auto; overflow: hidden; }
 .user-avatar { width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center; margin-left: 8px; background: linear-gradient(135deg, #7fba87, #4f8a60); color: white; flex: 0 0 auto; }
-.input-bar { position: sticky; bottom: 0; z-index: 40; background: rgba(255,255,255,0.92); border-top: 1px solid var(--line); padding: 12px 14px 14px; backdrop-filter: blur(14px); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+.input-bar { position: static; z-index: 40; background: rgba(255,255,255,0.92); border-top: 1px solid var(--line); padding: 12px 14px 14px; backdrop-filter: blur(14px); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
 .login-card { width: min(520px, calc(100vw - 28px)); margin: 44px auto; padding: 30px; }
 .section-label { color: var(--green-900); font-weight: 900; font-size: 16px; }
 .history-box { max-height: 55vh; overflow-y: auto; }
@@ -296,8 +297,12 @@ body.body--dark { background: #111; }
 .security-note { text-align: center; color: var(--muted); font-size: 12px; padding: 8px 0 14px; }
 .mobile-bottom-nav { display: none; position: sticky; bottom: 0; z-index: 60; background: rgba(255,255,255,0.94); border-top: 1px solid var(--line); backdrop-filter: blur(16px); padding: 8px 8px 10px; }
 
-@media (max-width: 980px) { .desktop-layout { grid-template-columns: 1fr; } .side-nav { display: none; } .page-wrap { padding: 10px; } .top-bar { height: 68px; } .brand-logo { width: 40px; height: 40px; border-radius: 15px; } .brand-logo svg { width: 33px; height: 33px; } .current-phase-card { padding: 20px; } .current-phase-title { font-size: 28px; } .chat-area { height: calc(100vh - 365px); min-height: 360px; padding: 16px 10px; } .chat-bubble-user, .chat-bubble-ai { max-width: 88%; font-size: 14px; } .mobile-bottom-nav { display: grid; grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 980px) { .desktop-layout { grid-template-columns: 1fr; } .side-nav { display: none; } .page-wrap { padding: 10px; } .top-bar { height: 68px; } .brand-logo { width: 40px; height: 40px; border-radius: 15px; } .brand-logo svg { width: 33px; height: 33px; } .current-phase-card { padding: 20px; } .current-phase-title { font-size: 28px; } .chat-area { height: auto; min-height: 220px; overflow: visible; padding: 16px 10px; } .chat-bubble-user, .chat-bubble-ai { max-width: 88%; font-size: 14px; } .mobile-bottom-nav { display: grid; grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 600px) { .page-wrap { padding: 8px; } .login-card { margin-top: 20px; padding: 22px; } .title-main { font-size: 15px; } .subtitle { font-size: 12px; } .current-phase-card { border-radius: 22px; } .phase-list-item, .phase-list-item-active { padding: 9px 10px; } }
+
+/* チャット欄を独立スクロールにせず、ページ全体で自然に上下移動する */
+.chat-area::-webkit-scrollbar { display: none; }
+.chat-area { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 """, shared=True)
 
@@ -1123,9 +1128,11 @@ def show_main_page() -> None:
 
                                 temp_history = s["chat_history"] + [{"user": user_text, "bot": "AIエージェントは考えています…"}]
                                 render_chat_area(chat_container, temp_history)
+                                ui.run_javascript("setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}), 50)")
 
                                 try:
-                                    response_text = generate_response(user_text, user_id)
+                                    # OpenAI/Supabase処理を別スレッドに逃がし、NiceGUIのWebSocketをブロックしない
+                                    response_text = await asyncio.to_thread(generate_response, user_text, user_id)
                                 except Exception as exc:
                                     response_text = f"エラー: {exc}"
                                     ui.notify(f"エラー: {exc}", type="negative")
@@ -1138,6 +1145,7 @@ def show_main_page() -> None:
 
                                 send_button.enable()
                                 render_chat_area(chat_container, s["chat_history"])
+                                ui.run_javascript("setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}), 50)")
 
                             send_button.on("click", send_message)
                             message_input.on("keydown.ctrl.enter", lambda _: send_message())
