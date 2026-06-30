@@ -1018,6 +1018,225 @@ body, html, .nicegui-content {
 </style>
 """, shared=True)
 
+
+# ============================================================
+# ChatGPT固定レイアウト最終修正: 入力欄を画面内下部固定
+# ============================================================
+ui.add_head_html("""
+<style>
+/* NiceGUI/Quasarの余白に負けない固定アプリレイアウト */
+html, body, #app, .nicegui-content {
+  width: 100% !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  overflow: hidden !important;
+  background: #f7fbf3 !important;
+}
+
+.q-layout, .q-page-container, .q-page {
+  min-height: 100dvh !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+.q-page-container {
+  padding-top: 64px !important;
+}
+
+.top-bar {
+  height: 64px !important;
+  min-height: 64px !important;
+  background: rgba(255,255,255,0.96) !important;
+  border-bottom: 1px solid rgba(111,167,122,0.18) !important;
+  box-shadow: 0 2px 12px rgba(54,92,62,0.04) !important;
+}
+
+.header-inner {
+  height: 64px !important;
+  width: min(980px, 100%) !important;
+  margin: 0 auto !important;
+  padding: 0 12px !important;
+}
+
+/* ヘッダー */
+.header-logo {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  overflow: hidden !important;
+}
+.header-logo .brand-logo {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  border-radius: 13px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.header-logo .brand-logo svg {
+  width: 29px !important;
+  height: 29px !important;
+  display: block !important;
+}
+.app-title-compact {
+  color: var(--green-900) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em !important;
+  font-size: 15px !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 360px !important;
+}
+.phase-mini-chip {
+  border-radius: 999px !important;
+  padding: 5px 9px !important;
+  background: rgba(234,245,234,0.95) !important;
+  color: var(--green-800) !important;
+  font-size: 11.5px !important;
+  font-weight: 900 !important;
+  border: 1px solid rgba(79,138,96,0.22) !important;
+  white-space: nowrap !important;
+}
+.top-tabs { display: flex !important; align-items: center !important; gap: 4px !important; }
+.top-tab { min-height: 32px !important; padding: 0 10px !important; border-radius: 999px !important; font-size: 12.5px !important; font-weight: 800 !important; }
+.top-tab-active { background: rgba(79,138,96,0.12) !important; color: var(--green-900) !important; }
+
+/* ページ領域をヘッダー下に固定 */
+.page-wrap.chatgpt-page {
+  position: fixed !important;
+  top: 64px !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  z-index: 1 !important;
+}
+
+.chatgpt-main {
+  width: min(920px, 100%) !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 auto !important;
+  padding: 10px 12px 12px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.chat-shell {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: rgba(255,255,255,0.78) !important;
+  border: 1px solid rgba(111,167,122,0.18) !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+  box-shadow: 0 10px 30px rgba(54,92,62,0.08) !important;
+}
+
+.chat-head-compact {
+  flex: 0 0 auto !important;
+  padding: 12px 16px 9px !important;
+  border-bottom: 1px solid rgba(111,167,122,0.14) !important;
+  background: rgba(255,255,255,0.86) !important;
+}
+.chat-title-compact { color: var(--green-900) !important; font-weight: 900 !important; font-size: 17px !important; letter-spacing: -0.02em !important; }
+.phase-inline { color: var(--muted) !important; font-size: 12px !important; line-height: 1.4 !important; }
+
+.chat-scroll-area {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding: 16px 16px 12px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.50)) !important;
+}
+.chat-scroll-area .chat-area {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow: visible !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+.chat-bubble-user { max-width: min(78%, 620px) !important; font-size: 15px !important; line-height: 1.85 !important; }
+.chat-bubble-ai { max-width: min(84%, 680px) !important; font-size: 15px !important; line-height: 1.9 !important; }
+.ai-avatar { width: 38px !important; height: 38px !important; margin-right: 9px !important; }
+.ai-avatar svg { width: 31px !important; height: 31px !important; }
+
+.chat-input-fixed {
+  flex: 0 0 auto !important;
+  position: relative !important;
+  bottom: auto !important;
+  z-index: 10 !important;
+  padding: 10px 14px max(12px, env(safe-area-inset-bottom)) !important;
+  background: rgba(255,255,255,0.98) !important;
+  border-top: 1px solid rgba(111,167,122,0.16) !important;
+}
+.chat-input-fixed .q-field--outlined .q-field__control,
+.chat-input-fixed .q-field__control {
+  border-radius: 999px !important;
+  background: white !important;
+  min-height: 46px !important;
+}
+.chat-input-fixed textarea { max-height: 96px !important; overflow-y: auto !important; }
+.security-note-compact { display: none !important; }
+.mobile-bottom-nav, .side-nav, .consult-phase-summary, .consult-intro { display: none !important; }
+
+/* 見立て・履歴画面は同じ固定領域内で自然スクロール */
+.chatgpt-main > .q-column:not(.chat-shell) {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+.current-phase-card.compact-insight { padding: 18px !important; border-radius: 22px !important; }
+.current-phase-card.compact-insight .current-phase-title { font-size: 22px !important; letter-spacing: -0.02em !important; }
+.current-phase-card.compact-insight .current-phase-subtitle { font-size: 14px !important; line-height: 1.8 !important; }
+.current-phase-card.compact-insight .phase-track { margin: 12px 0 0 !important; gap: 8px !important; }
+.current-phase-card.compact-insight .phase-dot { height: 7px !important; }
+
+@media (max-width: 700px) {
+  .q-page-container { padding-top: 62px !important; }
+  .top-bar { height: 62px !important; min-height: 62px !important; }
+  .header-inner { height: 62px !important; padding: 0 8px !important; }
+  .header-logo { flex: 1 1 auto !important; }
+  .header-logo .brand-logo { width: 34px !important; height: 34px !important; min-width: 34px !important; }
+  .header-logo .brand-logo svg { width: 28px !important; height: 28px !important; }
+  .app-title-compact { max-width: 185px !important; font-size: 12.2px !important; line-height: 1.14 !important; }
+  .phase-mini-chip { display: none !important; }
+  .top-tabs { flex: 0 0 auto !important; gap: 1px !important; }
+  .top-tab { min-height: 30px !important; padding: 0 6px !important; font-size: 11px !important; }
+  .top-tab .q-icon { display: none !important; }
+  .page-wrap.chatgpt-page { top: 62px !important; }
+  .chatgpt-main { width: 100% !important; padding: 0 !important; }
+  .chat-shell { border-left: none !important; border-right: none !important; border-bottom: none !important; border-radius: 0 !important; box-shadow: none !important; }
+  .chat-head-compact { padding: 9px 10px 7px !important; }
+  .chat-title-compact { font-size: 15px !important; }
+  .phase-inline { font-size: 11.5px !important; }
+  .chat-scroll-area { padding: 12px 9px 10px !important; }
+  .chat-bubble-user, .chat-bubble-ai { max-width: 88% !important; font-size: 14.5px !important; }
+  .ai-avatar { width: 33px !important; height: 33px !important; margin-right: 7px !important; }
+  .ai-avatar svg { width: 27px !important; height: 27px !important; }
+  .chat-input-fixed { padding: 8px 9px max(9px, env(safe-area-inset-bottom)) !important; }
+  .chat-input-fixed .q-btn { width: 46px !important; height: 46px !important; }
+}
+
+@media (max-width: 430px) {
+  .app-title-compact { max-width: 150px !important; font-size: 11.5px !important; }
+  .top-tab { padding: 0 5px !important; font-size: 10.5px !important; }
+}
+</style>
+""", shared=True)
+
 # ============================================================
 # 3. 知識ベースJSONの読み込み
 # ============================================================
@@ -1995,139 +2214,6 @@ def show_main_page() -> None:
 
 
 
-
-# ============================================================
-# 追加修正: スマホで入力欄が画面外へ落ちないようにする最終CSS
-# ============================================================
-ui.add_head_html("""
-<style>
-/* mobile browser のアドレスバー変動に強い 100dvh 固定レイアウト */
-html, body, .nicegui-content {
-  height: 100dvh !important;
-  min-height: 100dvh !important;
-  overflow: hidden !important;
-}
-
-.top-bar {
-  height: 64px !important;
-}
-
-.header-inner {
-  height: 64px !important;
-}
-
-.page-wrap.chatgpt-page {
-  height: calc(100dvh - 64px) !important;
-  max-height: calc(100dvh - 64px) !important;
-  overflow: hidden !important;
-  padding: 0 !important;
-}
-
-.chatgpt-main {
-  height: calc(100dvh - 64px) !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
-  padding: 0 !important;
-}
-
-.chat-shell {
-  height: calc(100dvh - 64px) !important;
-  max-height: calc(100dvh - 64px) !important;
-  min-height: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  border-radius: 0 !important;
-}
-
-.chat-head-compact {
-  flex: 0 0 auto !important;
-}
-
-.chat-scroll-area {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  padding-bottom: 14px !important;
-}
-
-.chat-input-fixed {
-  flex: 0 0 auto !important;
-  position: sticky !important;
-  bottom: 0 !important;
-  z-index: 80 !important;
-  padding-bottom: max(10px, env(safe-area-inset-bottom)) !important;
-  background: rgba(255,255,255,0.98) !important;
-}
-
-.chat-input-fixed .q-textarea .q-field__control,
-.chat-input-fixed .q-field__control {
-  min-height: 46px !important;
-}
-
-.chat-input-fixed textarea {
-  max-height: 96px !important;
-  overflow-y: auto !important;
-}
-
-.security-note-compact {
-  display: none !important;
-}
-
-@media (max-width: 700px) {
-  .top-bar { height: 64px !important; }
-  .header-inner { height: 64px !important; }
-
-  .app-title-compact {
-    max-width: 170px !important;
-    font-size: 12px !important;
-    line-height: 1.15 !important;
-  }
-
-  .phase-mini-chip {
-    display: none !important;
-  }
-
-  .top-tab {
-    min-width: auto !important;
-    padding: 0 6px !important;
-    font-size: 11.5px !important;
-  }
-
-  .page-wrap.chatgpt-page,
-  .chatgpt-main,
-  .chat-shell {
-    height: calc(100dvh - 64px) !important;
-    max-height: calc(100dvh - 64px) !important;
-  }
-
-  .chat-head-compact {
-    padding: 9px 10px 7px !important;
-  }
-
-  .chat-title-compact {
-    font-size: 15px !important;
-  }
-
-  .phase-inline {
-    font-size: 11.5px !important;
-  }
-
-  .chat-scroll-area {
-    padding: 12px 9px 10px !important;
-  }
-
-  .chat-input-fixed {
-    padding: 8px 9px max(9px, env(safe-area-inset-bottom)) !important;
-  }
-
-  .chat-input-fixed .q-btn {
-    width: 46px !important;
-    height: 46px !important;
-  }
-}
-</style>
-""", shared=True)
 
 # ============================================================
 # 11. ルーティング
