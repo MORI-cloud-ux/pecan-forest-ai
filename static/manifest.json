@@ -1,0 +1,32 @@
+{
+  "name": "ペカンの森 相談AI",
+  "short_name": "ペカンの森",
+  "description": "不登校やひきこもりに関する悩みに寄り添い、家庭での関わり方や次の一歩を一緒に考えるAI相談アプリです。",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F8FCF5",
+  "theme_color": "#6FA77A",
+  "orientation": "portrait",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/pecan-forest-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
