@@ -653,6 +653,371 @@ html, body, .nicegui-content {
 </style>
 """, shared=True)
 
+
+ui.add_head_html("""
+<style>
+
+/* ============================================================
+   ChatGPT風 最終UI調整：上部タブ / 入力固定 / 大型Phaseカード廃止
+   ============================================================ */
+body, html, .nicegui-content {
+  background: #f7fbf3 !important;
+  overflow-x: hidden !important;
+}
+
+.page-wrap.chatgpt-page {
+  width: 100% !important;
+  max-width: 920px !important;
+  margin: 0 auto !important;
+  padding: 0 12px !important;
+}
+
+.top-bar {
+  height: 64px !important;
+  background: rgba(255,255,255,0.94) !important;
+  border-bottom: 1px solid rgba(111,167,122,0.18) !important;
+  box-shadow: 0 3px 14px rgba(54,92,62,0.04) !important;
+}
+
+.header-inner {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  height: 64px;
+  padding: 0 12px;
+}
+
+.header-logo .brand-logo {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+
+.header-logo .brand-logo svg {
+  width: 31px !important;
+  height: 31px !important;
+}
+
+.app-title-compact {
+  color: var(--green-900);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  font-size: 18px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.phase-mini-chip {
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(234,245,234,0.95);
+  color: var(--green-800);
+  font-size: 12px;
+  font-weight: 900;
+  border: 1px solid rgba(79,138,96,0.22);
+  white-space: nowrap;
+}
+
+.top-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.top-tab {
+  min-height: 34px !important;
+  padding: 0 11px !important;
+  border-radius: 999px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+.top-tab-active {
+  background: rgba(79,138,96,0.12) !important;
+  color: var(--green-900) !important;
+}
+
+.chatgpt-main {
+  min-height: calc(100vh - 64px);
+  padding-top: 10px;
+  padding-bottom: 0;
+}
+
+.chat-shell {
+  height: calc(100vh - 78px);
+  display: flex;
+  flex-direction: column;
+  background: rgba(255,255,255,0.72);
+  border: 1px solid rgba(111,167,122,0.18);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 12px 38px rgba(54,92,62,0.08);
+}
+
+.chat-head-compact {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid rgba(111,167,122,0.14);
+  background: rgba(255,255,255,0.80);
+}
+
+.chat-title-compact {
+  color: var(--green-900);
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.phase-inline {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.chat-scroll-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 16px 12px;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(234,245,234,0.55), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,0.15), rgba(255,255,255,0.60));
+}
+
+.chat-scroll-area .chat-area {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow: visible !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.chat-bubble-user {
+  max-width: min(78%, 620px) !important;
+  font-size: 15px !important;
+  line-height: 1.85 !important;
+}
+
+.chat-bubble-ai {
+  max-width: min(84%, 680px) !important;
+  font-size: 15px !important;
+  line-height: 1.9 !important;
+}
+
+.ai-avatar {
+  width: 38px !important;
+  height: 38px !important;
+  margin-right: 9px !important;
+}
+
+.ai-avatar svg {
+  width: 31px !important;
+  height: 31px !important;
+}
+
+.chat-input-fixed {
+  flex: 0 0 auto;
+  padding: 10px 14px 12px;
+  background: rgba(255,255,255,0.96);
+  border-top: 1px solid rgba(111,167,122,0.16);
+}
+
+.chat-input-fixed .q-field--outlined .q-field__control {
+  border-radius: 999px !important;
+  background: white !important;
+}
+
+.security-note-compact {
+  text-align: center;
+  color: var(--muted);
+  font-size: 11.5px;
+  padding-top: 6px;
+}
+
+.mobile-bottom-nav,
+.side-nav,
+.consult-phase-summary,
+.consult-intro {
+  display: none !important;
+}
+
+.current-phase-card.compact-insight {
+  padding: 18px !important;
+  border-radius: 22px !important;
+}
+
+.current-phase-card.compact-insight .current-phase-title {
+  font-size: 22px !important;
+  letter-spacing: -0.02em !important;
+}
+
+.current-phase-card.compact-insight .current-phase-subtitle {
+  font-size: 14px !important;
+  line-height: 1.8 !important;
+}
+
+.current-phase-card.compact-insight .phase-track {
+  margin: 12px 0 0 !important;
+  gap: 8px !important;
+}
+
+.current-phase-card.compact-insight .phase-dot {
+  height: 7px !important;
+}
+
+@media (max-width: 700px) {
+  .header-inner {
+    padding: 0 8px;
+  }
+
+  .header-logo .brand-logo {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .header-logo .brand-logo svg {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .app-title-compact {
+    font-size: 15px;
+  }
+
+  .phase-mini-chip {
+    font-size: 11px;
+    padding: 5px 8px;
+    max-width: 116px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .top-tabs {
+    gap: 1px;
+  }
+
+  .top-tab {
+    min-height: 31px !important;
+    padding: 0 7px !important;
+    font-size: 12px !important;
+  }
+
+  .top-tab .q-icon {
+    display: none !important;
+  }
+
+  .page-wrap.chatgpt-page {
+    padding: 0 !important;
+  }
+
+  .chatgpt-main {
+    padding-top: 0;
+  }
+
+  .chat-shell {
+    height: calc(100vh - 64px);
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .chat-head-compact {
+    padding: 10px 12px 8px;
+  }
+
+  .chat-title-compact {
+    font-size: 16px;
+  }
+
+  .chat-scroll-area {
+    padding: 14px 10px 10px;
+  }
+
+  .chat-bubble-user,
+  .chat-bubble-ai {
+    max-width: 88% !important;
+    font-size: 14.5px !important;
+  }
+
+  .ai-avatar {
+    width: 33px !important;
+    height: 33px !important;
+    margin-right: 7px !important;
+  }
+
+  .ai-avatar svg {
+    width: 27px !important;
+    height: 27px !important;
+  }
+
+  .chat-input-fixed {
+    padding: 8px 10px max(10px, env(safe-area-inset-bottom));
+  }
+}
+
+
+
+/* ============================================================
+   ヘッダー微調整：正式タイトル表示＋ロゴ中央揃え
+   ============================================================ */
+.header-logo {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  overflow: hidden !important;
+}
+
+.header-logo .brand-logo {
+  flex: 0 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 0 !important;
+  transform: translateY(-1px);
+}
+
+.header-logo .brand-logo svg {
+  display: block !important;
+}
+
+.app-title-compact {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  max-width: 360px;
+  font-size: 15px !important;
+  line-height: 1.16 !important;
+}
+
+@media (max-width: 700px) {
+  .top-bar { height: 70px !important; }
+  .header-inner { height: 70px !important; }
+  .chat-shell { height: calc(100vh - 70px) !important; }
+  .app-title-compact {
+    max-width: 165px;
+    font-size: 12.5px !important;
+    line-height: 1.16 !important;
+  }
+  .phase-mini-chip {
+    max-width: 86px !important;
+    font-size: 10.5px !important;
+    padding: 5px 7px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .app-title-compact {
+    max-width: 145px;
+    font-size: 11.8px !important;
+  }
+  .phase-mini-chip {
+    display: none !important;
+  }
+}
+
+</style>
+""", shared=True)
+
 # ============================================================
 # 3. 知識ベースJSONの読み込み
 # ============================================================
@@ -1217,27 +1582,9 @@ def render_phase_status_badge(current_phase: Optional[str], on_click: Optional[A
 
 
 def render_consult_phase_summary(container: ui.element, current_phase: Optional[str]) -> None:
-    """相談画面上部に、現在の見立てを大きく表示する。"""
+    """相談画面では大きなカードを出さず、ヘッダー内チップで軽く表示する。"""
     container.clear()
-    active_index = {"phase_1": 0, "phase_2": 1, "phase_3": 2, "phase_4": 3}.get(current_phase, -1)
-    phase_short = PHASE_SHORT_LABELS.get(current_phase, "未推定")
-    phase_desc = PHASE_DESCRIPTIONS.get(
-        current_phase,
-        "最初の相談内容を送信すると、その日の状態に合わせて見立てが表示されます。診断ではなく、関わり方を考えるための目安です。",
-    )
-    title_text = phase_short if current_phase in PHASE_SHORT_LABELS else "まだ見立てはありません"
 
-    with container:
-        with ui.column().classes("consult-phase-summary w-full"):
-            with ui.row().classes("consult-phase-topline"):
-                ui.label("現在の見立て").classes("consult-phase-caption")
-                ui.label(phase_short).classes("consult-phase-chip")
-            ui.label(title_text).classes("consult-phase-title")
-            ui.label(phase_desc).classes("consult-phase-description")
-            with ui.row().classes("consult-phase-progress w-full"):
-                for i in range(4):
-                    cls = "consult-phase-bar consult-phase-bar-active" if i <= active_index and active_index >= 0 else "consult-phase-bar"
-                    ui.html(f'<div class="{cls}"></div>')
 
 def set_active_view(view: str) -> None:
     s = user_store()
@@ -1246,38 +1593,32 @@ def set_active_view(view: str) -> None:
 
 
 def app_header() -> None:
+    s = user_store()
+    active_view = s.get("active_view", "consult")
+    phase = s.get("current_phase")
+    phase_short = PHASE_SHORT_LABELS.get(phase, "見立て未推定")
+    phase_name = phase_short.split("：", 1)[1] if "：" in phase_short else phase_short
+
+    def tab_button(label: str, icon: str, view: str) -> None:
+        active = active_view == view
+        classes = "top-tab top-tab-active" if active else "top-tab"
+        ui.button(label, icon=icon, on_click=lambda v=view: set_active_view(v)).props("flat dense no-caps").classes(classes)
+
     with ui.header().classes("top-bar"):
-        with ui.row().classes("items-center justify-between w-full mobile-shell px-3"):
-            with ui.row().classes("items-center gap-3"):
+        with ui.row().classes("header-inner items-center justify-between w-full"):
+            with ui.row().classes("header-logo items-center gap-2"):
                 tree_logo()
-                with ui.column().classes("gap-0"):
-                    ui.label("不登校・ひきこもり相談AIエージェント").classes("app-brand-title")
-                    ui.label("@ ペカンの森").classes("app-brand-subtitle")
-            with ui.row().classes("items-center gap-2"):
-                ui.button(icon="history", on_click=lambda: set_active_view("history")).props("flat round color=green")
+                ui.label("不登校・ひきこもり相談AIエージェント").classes("app-title-compact")
+                ui.label(phase_name).classes("phase-mini-chip")
+            with ui.row().classes("top-tabs"):
+                tab_button("相談", "chat_bubble_outline", "consult")
+                tab_button("見立て", "favorite_border", "insight")
+                tab_button("履歴", "history", "history")
 
 
 def render_side_nav() -> None:
-    s = user_store()
-    active_view = s.get("active_view", "consult")
-
-    with ui.card().classes("app-card side-nav w-full"):
-        with ui.column().classes("h-full w-full gap-2"):
-            items = [
-                ("chat_bubble_outline", "相談する", "consult"),
-                ("favorite_border", "見立て", "insight"),
-                ("history", "履歴", "history"),
-            ]
-            for icon, label, view in items:
-                active = active_view == view
-                classes = "nav-item nav-item-active" if active else "nav-item"
-                with ui.row().classes(classes).on("click", lambda _=None, v=view: set_active_view(v)):
-                    ui.icon(icon).classes("text-xl")
-                    ui.label(label)
-            ui.space()
-            with ui.column().classes("nav-note"):
-                ui.label("あなたの気持ちは大切に守られます。")
-                ui.label("安心して、短い言葉からお話しください。")
+    """旧サイドナビは廃止。現在は上部タブで切り替える。"""
+    return
 
 
 def render_history_page() -> None:
@@ -1336,7 +1677,7 @@ def render_history_page() -> None:
 
 
 def render_phase_panel(container: Optional[ui.element] = None) -> None:
-    """現在の見立てカードと4期一覧を描画する。container指定時は再描画にも使う。"""
+    """見立てページ。相談画面では軽く、ここで詳細を見る。"""
     if container is not None:
         container.clear()
         with container:
@@ -1347,24 +1688,23 @@ def render_phase_panel(container: Optional[ui.element] = None) -> None:
     current_phase = s.get("current_phase")
     active_index = {"phase_1": 0, "phase_2": 1, "phase_3": 2, "phase_4": 3}.get(current_phase, -1)
 
-    with ui.card().classes("current-phase-card w-full"):
-        with ui.row().classes("items-start justify-between w-full gap-4"):
-            with ui.column().classes("gap-2"):
-                with ui.row().classes("items-center gap-2"):
-                    ui.label("現在の見立て").classes("section-label")
-                    ui.label(PHASE_SHORT_LABELS.get(current_phase, "未推定")).classes("phase-chip")
+    with ui.card().classes("current-phase-card compact-insight w-full"):
+        with ui.column().classes("gap-2"):
+            with ui.row().classes("items-center gap-2"):
+                ui.label("現在の見立て").classes("section-label")
+                ui.label(PHASE_SHORT_LABELS.get(current_phase, "未推定")).classes("phase-chip")
 
-                if current_phase in PHASE_SHORT_LABELS:
-                    ui.label(PHASE_SHORT_LABELS[current_phase]).classes("current-phase-title")
-                    ui.label(PHASE_DESCRIPTIONS.get(current_phase, "")).classes("current-phase-subtitle")
-                else:
-                    ui.label("まだ見立てはありません").classes("current-phase-title")
-                    ui.label("最初の相談内容を送信すると、その日の状態に合わせて見立てが表示されます。診断ではなく、関わり方を考えるための目安です。").classes("current-phase-subtitle")
+            if current_phase in PHASE_SHORT_LABELS:
+                ui.label(PHASE_SHORT_LABELS[current_phase]).classes("current-phase-title")
+                ui.label(PHASE_DESCRIPTIONS.get(current_phase, "")).classes("current-phase-subtitle")
+            else:
+                ui.label("まだ見立てはありません").classes("current-phase-title")
+                ui.label("最初の相談内容を送信すると、その日の状態に合わせて見立てが表示されます。").classes("current-phase-subtitle")
 
-                with ui.row().classes("phase-track w-full"):
-                    for i in range(4):
-                        dot_class = "phase-dot phase-dot-active" if i == active_index else "phase-dot"
-                        ui.html(f'<div class="{dot_class}"></div>')
+            with ui.row().classes("phase-track w-full"):
+                for i in range(4):
+                    dot_class = "phase-dot phase-dot-active" if i == active_index else "phase-dot"
+                    ui.html(f'<div class="{dot_class}"></div>')
 
         with ui.card().classes("soft-card w-full p-3 mt-3"):
             ui.label("フェーズの目安").classes("font-bold text-green-900")
@@ -1547,120 +1887,111 @@ def show_main_page() -> None:
     view_date = s.get("view_date", today_str)
     active_view = s.get("active_view", "consult")
 
-    with ui.column().classes("page-wrap mobile-shell"):
-        with ui.element("div").classes("desktop-layout w-full"):
-            render_side_nav()
-
-            with ui.column().classes("gap-4 w-full"):
-                if active_view == "insight":
+    with ui.column().classes("page-wrap chatgpt-page"):
+        with ui.column().classes("chatgpt-main w-full"):
+            if active_view == "insight":
+                with ui.column().classes("gap-3 w-full p-3"):
                     render_phase_panel()
 
-                elif active_view == "history":
+            elif active_view == "history":
+                with ui.column().classes("gap-3 w-full p-3"):
                     render_history_page()
 
+            else:
+                if view_date == today_str:
+                    display_history = s["chat_history"]
                 else:
-                    if view_date == today_str:
-                        display_history = s["chat_history"]
-                    else:
-                        rows = get_hist_for_date(user_id, view_date)
-                        display_history = [
-                            {"user": r.get("user_message", ""), "bot": r.get("bot_message", "")}
-                            for r in rows
-                        ]
+                    rows = get_hist_for_date(user_id, view_date)
+                    display_history = [
+                        {"user": r.get("user_message", ""), "bot": r.get("bot_message", "")}
+                        for r in rows
+                    ]
 
-                    phase_for_view = None
-                    if view_date == today_str:
-                        phase_for_view = s["current_phase"]
-                    else:
-                        rows_view = get_hist_for_date(user_id, view_date)
-                        for r in rows_view:
-                            if r.get("phase"):
-                                phase_for_view = r.get("phase")
-                                break
+                phase_for_view = None
+                if view_date == today_str:
+                    phase_for_view = s["current_phase"]
+                else:
+                    rows_view = get_hist_for_date(user_id, view_date)
+                    for r in rows_view:
+                        if r.get("phase"):
+                            phase_for_view = r.get("phase")
+                            break
 
-                    phase_label = PHASE_LABELS.get(phase_for_view, "未推定")
+                phase_label = PHASE_SHORT_LABELS.get(phase_for_view, "未推定")
 
-                    with ui.card().classes("app-card w-full p-0"):
-                        with ui.column().classes("w-full p-4 gap-0 consult-intro"):
-                            with ui.row().classes("consult-card-head items-start justify-between w-full"):
-                                with ui.column().classes("consult-title-block gap-0"):
-                                    with ui.row().classes("items-center gap-2"):
-                                        ui.icon("chat_bubble_outline").classes("text-green-700")
-                                        ui.label("AIエージェントに相談する").classes("consult-title")
-                                    ui.label(APP_SUBTITLE).classes("consult-lead")
-                                with ui.row().classes("consult-action-row"):
-                                    with ui.row().classes("consult-action-button items-center gap-2").on("click", lambda: set_active_view("insight")):
-                                        ui.icon("favorite_border")
-                                        ui.label("見立て")
-                                    with ui.row().classes("consult-action-button items-center gap-2").on("click", lambda: set_active_view("history")):
-                                        ui.icon("history")
-                                        ui.label("履歴")
+                with ui.element("div").classes("chat-shell w-full"):
+                    with ui.row().classes("chat-head-compact items-center justify-between w-full"):
+                        with ui.column().classes("gap-0"):
+                            ui.label("AIエージェントに相談する").classes("chat-title-compact")
+                            ui.label(f"現在の見立て：{phase_label}").classes("phase-inline")
+                        with ui.row().classes("items-center gap-1"):
+                            ui.button("見立て", icon="favorite_border", on_click=lambda: set_active_view("insight")).props("flat dense color=green no-caps").classes("top-tab")
+                            ui.button("履歴", icon="history", on_click=lambda: set_active_view("history")).props("flat dense color=green no-caps").classes("top-tab")
 
-                        phase_summary_container = ui.column().classes("w-full")
-                        render_consult_phase_summary(phase_summary_container, phase_for_view)
-
+                    with ui.element("div").classes("chat-scroll-area w-full") as scroll_area:
                         chat_container = ui.column().classes("chat-area w-full")
                         render_chat_area(chat_container, display_history)
 
-                        if view_date == today_str:
-                            with ui.row().classes("input-bar w-full items-end gap-2"):
+                    if view_date == today_str:
+                        with ui.column().classes("chat-input-fixed w-full gap-0"):
+                            with ui.row().classes("w-full items-end gap-2"):
                                 message_input = ui.textarea(
                                     placeholder="どんなことでも大丈夫です。",
                                 ).props("outlined autogrow rows=1").classes("flex-1")
                                 send_button = ui.button(icon="send").props("round color=green size=lg")
+                            ui.label("あなたの会話は安全に保護されています").classes("security-note-compact")
 
-                            ui.label("lock あなたの会話は安全に保護されています").classes("security-note")
+                        async def send_message() -> None:
+                            user_text = (message_input.value or "").strip()
+                            if not user_text:
+                                return
 
-                            async def send_message() -> None:
-                                user_text = (message_input.value or "").strip()
-                                if not user_text:
-                                    return
+                            message_input.value = ""
+                            send_button.disable()
 
-                                message_input.value = ""
-                                send_button.disable()
+                            temp_history = s["chat_history"] + [{"user": user_text, "bot": "AIエージェントは考えています…"}]
+                            render_chat_area(chat_container, temp_history)
+                            ui.run_javascript("""
+                                setTimeout(() => {
+                                    const el = document.querySelector('.chat-scroll-area');
+                                    if (el) el.scrollTo({top: el.scrollHeight, behavior: 'smooth'});
+                                }, 50)
+                            """)
 
-                                temp_history = s["chat_history"] + [{"user": user_text, "bot": "AIエージェントは考えています…"}]
-                                render_chat_area(chat_container, temp_history)
-                                ui.run_javascript("setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}), 50)")
+                            try:
+                                result = await asyncio.to_thread(
+                                    generate_response_background,
+                                    user_text,
+                                    user_id,
+                                    list(s["chat_history"]),
+                                    s.get("current_phase"),
+                                    dict(s["slots"]),
+                                )
+                                response_text = result["response_text"]
+                                s["current_phase"] = result.get("current_phase")
+                                s["slots"] = result.get("slots", s["slots"])
+                                for warning in result.get("warnings", []):
+                                    if "JSON" not in str(warning):
+                                        ui.notify(warning, type="warning")
+                            except Exception as exc:
+                                response_text = f"エラー: {exc}"
+                                ui.notify(f"エラー: {exc}", type="negative")
 
-                                try:
-                                    # UIを触らない処理だけを別スレッドへ逃がす
-                                    result = await asyncio.to_thread(
-                                        generate_response_background,
-                                        user_text,
-                                        user_id,
-                                        list(s["chat_history"]),
-                                        s.get("current_phase"),
-                                        dict(s["slots"]),
-                                    )
-                                    response_text = result["response_text"]
-                                    s["current_phase"] = result.get("current_phase")
-                                    s["slots"] = result.get("slots", s["slots"])
-                                    for warning in result.get("warnings", []):
-                                        if "JSON" not in str(warning):
-                                            ui.notify(warning, type="warning")
-                                except Exception as exc:
-                                    response_text = f"エラー: {exc}"
-                                    ui.notify(f"エラー: {exc}", type="negative")
+                            s["chat_history"].append({"user": user_text, "bot": response_text})
 
-                                s["chat_history"].append({"user": user_text, "bot": response_text})
+                            send_button.enable()
+                            render_chat_area(chat_container, s["chat_history"])
+                            ui.run_javascript("""
+                                setTimeout(() => {
+                                    const el = document.querySelector('.chat-scroll-area');
+                                    if (el) el.scrollTo({top: el.scrollHeight, behavior: 'smooth'});
+                                }, 50)
+                            """)
 
-                                phase_for_view_now = s.get("current_phase")
-                                render_consult_phase_summary(phase_summary_container, phase_for_view_now)
-
-                                send_button.enable()
-                                render_chat_area(chat_container, s["chat_history"])
-                                ui.run_javascript("setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}), 50)")
-
-                            send_button.on("click", send_message)
-                            message_input.on("keydown.ctrl.enter", lambda _: send_message())
-                        else:
-                            ui.label("※ 過去の履歴を閲覧中です。入力するには『今日』を選択してください。").classes("small-muted p-4")
-
-        with ui.row().classes("mobile-bottom-nav w-full"):
-            ui.button(icon="chat_bubble_outline", on_click=lambda: set_active_view("consult")).props("flat color=green").classes("w-full")
-            ui.button(icon="favorite_border", on_click=lambda: set_active_view("insight")).props("flat color=green").classes("w-full")
-            ui.button(icon="history", on_click=lambda: set_active_view("history")).props("flat color=green").classes("w-full")
+                        send_button.on("click", send_message)
+                        message_input.on("keydown.ctrl.enter", lambda _: send_message())
+                    else:
+                        ui.label("※ 過去の履歴を閲覧中です。入力するには『今日』を選択してください。").classes("small-muted p-4")
 
 
 # ============================================================
