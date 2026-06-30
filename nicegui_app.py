@@ -2,7 +2,7 @@
 # ============================================================
 # 不登校・ひきこもり相談AIエージェント NiceGUI版
 # Streamlit版からの移植版：OpenAI / Supabase / knowledge_base.json 対応
-# デザイン最終版: ペカンの森ロゴ、自然AIエージェント、3画面ナビ、スマホ最適化、非同期応答、自然スクロール対応
+# デザイン調整版: ペカンの森ブランド表示、見立てチップ、スマホ表示最適化、非同期応答、自然スクロール、JSON解析通知非表示
 # ============================================================
 #
 # 必要ファイル:
@@ -71,7 +71,7 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 APP_TITLE = "不登校・ひきこもり相談AIエージェント"
-APP_SUBTITLE = "温かく寄り添い、少しずつ一歩を。"
+APP_SUBTITLE = "安心して、どんなことでもお気軽にご相談ください。。"
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
@@ -303,6 +303,205 @@ body.body--dark { background: #111; }
 /* チャット欄を独立スクロールにせず、ページ全体で自然に上下移動する */
 .chat-area::-webkit-scrollbar { display: none; }
 .chat-area { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ============================================================
+   スマホUI微調整：中央寄せ・文字サイズ・余白・横ズレ対策
+   ============================================================ */
+* { box-sizing: border-box; }
+html, body, .nicegui-content {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+.page-wrap {
+  width: 100%;
+  max-width: 1240px;
+  padding: 18px clamp(12px, 3vw, 24px);
+}
+.mobile-shell {
+  width: 100%;
+  max-width: 1180px;
+}
+.login-card {
+  width: 100%;
+  max-width: 500px;
+  margin: min(7vh, 52px) auto 24px;
+  padding: clamp(24px, 4.8vw, 34px);
+}
+.login-card .q-field,
+.login-card .q-btn {
+  font-size: 16px;
+}
+.chat-bubble-user,
+.chat-bubble-ai {
+  font-size: 15px;
+}
+.app-card {
+  overflow: hidden;
+}
+.q-field__native,
+.q-field__input {
+  font-size: 16px !important;
+}
+@media (max-width: 600px) {
+  .page-wrap {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px;
+    margin: 0 auto;
+  }
+  .login-card {
+    width: 100%;
+    max-width: calc(100vw - 24px);
+    margin: 18px auto 20px;
+    padding: 24px 20px;
+    transform: none;
+  }
+  .login-card .title-main {
+    font-size: 21px !important;
+    line-height: 1.45;
+  }
+  .login-card .subtitle {
+    font-size: 14px !important;
+    line-height: 1.7;
+  }
+  .top-bar {
+    height: 66px;
+  }
+  .top-bar .mobile-shell {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .brand-logo {
+    width: 42px;
+    height: 42px;
+  }
+  .brand-logo svg {
+    width: 35px;
+    height: 35px;
+  }
+  .chat-bubble-user,
+  .chat-bubble-ai {
+    max-width: 90%;
+    font-size: 15px;
+    line-height: 1.85;
+    padding: 13px 15px;
+  }
+  .current-phase-title {
+    font-size: 25px;
+  }
+  .current-phase-subtitle {
+    font-size: 14px;
+    line-height: 1.85;
+  }
+  .section-label {
+    font-size: 15px;
+  }
+  .small-muted {
+    font-size: 12.5px;
+  }
+  .input-bar {
+    padding: 10px 12px 12px;
+  }
+  .mobile-bottom-nav {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+}
+
+/* ============================================================
+   ヘッダー・相談カード最終調整：ブランド名と見立てチップ
+   ============================================================ */
+.app-brand-title {
+  color: var(--green-900);
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  font-size: 17px;
+  line-height: 1.25;
+}
+.app-brand-subtitle {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.consult-card-head {
+  gap: 12px;
+}
+.consult-title-block {
+  min-width: 0;
+}
+.consult-title {
+  color: var(--green-900);
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  font-size: 28px;
+  line-height: 1.25;
+}
+.phase-status-pill {
+  min-width: 142px;
+  max-width: 190px;
+  padding: 9px 13px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(234,245,234,0.98), rgba(255,255,255,0.90));
+  border: 1px solid rgba(79,138,96,0.28);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+.phase-status-icon {
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(79,138,96,0.12);
+  color: var(--green-700);
+  flex: 0 0 auto;
+}
+.phase-status-caption {
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.1;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.phase-status-value {
+  color: var(--green-900);
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 900;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .app-brand-title {
+    font-size: 14.5px;
+    line-height: 1.25;
+  }
+  .app-brand-subtitle {
+    font-size: 11.5px;
+  }
+  .consult-card-head {
+    align-items: flex-start;
+  }
+  .consult-title {
+    font-size: 22px;
+  }
+  .phase-status-pill {
+    min-width: 124px;
+    max-width: 142px;
+    padding: 8px 10px;
+  }
+  .phase-status-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .phase-status-caption {
+    font-size: 9.5px;
+  }
+  .phase-status-value {
+    font-size: 11.5px;
+  }
+}
+
 </style>
 """, shared=True)
 
@@ -544,6 +743,18 @@ def safe_json_load(s: str) -> dict:
         return json.loads(m.group(0))
 
 
+def clean_fallback_response(raw: str) -> str:
+    """JSON解析に失敗した場合でも、利用者には自然な回答だけを返す。"""
+    text = (raw or "").strip()
+    # Markdownコードフェンスを除去
+    text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s*```$", "", text)
+    text = text.strip()
+    if not text:
+        return "（すみません、うまく回答を生成できませんでした。もう一度、状況を短く教えてください。）"
+    return text
+
+
 def normalize_phase(p: str) -> str:
     if p in ["phase_1", "phase_2", "phase_3", "phase_4"]:
         return p
@@ -731,11 +942,25 @@ def generate_response_background(
 
     messages.append({"role": "user", "content": f"相談者の発言: {user_input}"})
 
-    resp = client.chat.completions.create(
-        model=os.getenv("OPENAI_MODEL", "gpt-4o"),
-        messages=messages,
-        temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.7")),
-    )
+    create_kwargs = {
+        "model": os.getenv("OPENAI_MODEL", "gpt-4o"),
+        "messages": messages,
+        "temperature": float(os.getenv("OPENAI_TEMPERATURE", "0.7")),
+    }
+
+    # JSON出力をできる限り強制する。未対応モデルの場合のみ通常呼び出しへフォールバック。
+    try:
+        resp = client.chat.completions.create(
+            **create_kwargs,
+            response_format={"type": "json_object"},
+        )
+    except Exception as exc:
+        msg = str(exc).lower()
+        if "response_format" in msg or "json_object" in msg or "unsupported" in msg:
+            resp = client.chat.completions.create(**create_kwargs)
+        else:
+            raise
+
     raw = resp.choices[0].message.content.strip()
 
     phase_for_row = current_phase or "phase_1"
@@ -744,9 +969,9 @@ def generate_response_background(
 
     try:
         obj = safe_json_load(raw)
-    except Exception as exc:
-        response_text = raw
-        warnings.append(f"AIの出力JSONの解析に失敗しました: {exc}")
+    except Exception:
+        # 利用者には内部エラーを見せず、自然な文章回答として扱う
+        response_text = clean_fallback_response(raw)
     else:
         phase_out = normalize_phase(obj.get("phase", "phase_1"))
         if is_first_today:
@@ -829,6 +1054,18 @@ def ai_avatar_logo() -> None:
     """チャット内の自然AIエージェント。ロボではなく、ペカンの木で表現する。"""
     ui.html(pecan_tree_svg_html("ai-avatar-logo"))
 
+
+def render_phase_status_badge(current_phase: Optional[str], on_click: Optional[Any] = None) -> ui.label:
+    """相談カード右上に表示する、現在の見立てチップ。戻り値はPhase表示ラベル。"""
+    phase_text = PHASE_SHORT_LABELS.get(current_phase, "未推定")
+    with ui.row().classes("phase-status-pill items-center gap-2").on("click", on_click or (lambda: None)):
+        with ui.element("div").classes("phase-status-icon"):
+            ui.icon("favorite_border").classes("text-lg")
+        with ui.column().classes("gap-0"):
+            ui.label("現在の見立て").classes("phase-status-caption")
+            value_label = ui.label(phase_text).classes("phase-status-value")
+    return value_label
+
 def set_active_view(view: str) -> None:
     s = user_store()
     s["active_view"] = view
@@ -836,19 +1073,14 @@ def set_active_view(view: str) -> None:
 
 
 def app_header() -> None:
-    s = user_store()
-    phase = s.get("current_phase")
-    phase_text = PHASE_SHORT_LABELS.get(phase, "未推定")
-
     with ui.header().classes("top-bar"):
         with ui.row().classes("items-center justify-between w-full mobile-shell px-3"):
             with ui.row().classes("items-center gap-3"):
                 tree_logo()
                 with ui.column().classes("gap-0"):
-                    ui.label("相談AI").classes("title-main text-lg")
-                    ui.label(APP_SUBTITLE).classes("subtitle")
+                    ui.label("不登校・ひきこもり相談AIエージェント").classes("app-brand-title")
+                    ui.label("@ ペカンの森").classes("app-brand-subtitle")
             with ui.row().classes("items-center gap-2"):
-                ui.label(phase_text).classes("phase-chip")
                 ui.button(icon="history", on_click=lambda: set_active_view("history")).props("flat round color=green")
 
 
@@ -1177,12 +1409,14 @@ def show_main_page() -> None:
 
                     with ui.card().classes("app-card w-full p-0"):
                         with ui.column().classes("w-full p-4 gap-0"):
-                            with ui.row().classes("items-center justify-between w-full"):
-                                with ui.row().classes("items-center gap-2"):
+                            with ui.row().classes("consult-card-head items-center justify-between w-full"):
+                                with ui.row().classes("items-center gap-2 consult-title-block"):
                                     ui.icon("chat_bubble_outline").classes("text-green-700")
-                                    ui.label("相談AI").classes("title-main text-2xl")
-                                ui.button(icon="favorite_border", on_click=lambda: set_active_view("insight")).props("flat round color=green")
-                            phase_meta_label = ui.label(f"表示中の日付: {view_date} ／ Phase: {phase_label}").classes("small-muted")
+                                    ui.label("AIエージェントに相談する").classes("consult-title")
+                                phase_status_label = render_phase_status_badge(
+                                    phase_for_view,
+                                    on_click=lambda: set_active_view("insight"),
+                                )
 
                         chat_container = ui.column().classes("chat-area w-full")
                         render_chat_area(chat_container, display_history)
@@ -1222,7 +1456,8 @@ def show_main_page() -> None:
                                     s["current_phase"] = result.get("current_phase")
                                     s["slots"] = result.get("slots", s["slots"])
                                     for warning in result.get("warnings", []):
-                                        ui.notify(warning, type="warning")
+                                        if "JSON" not in str(warning):
+                                            ui.notify(warning, type="warning")
                                 except Exception as exc:
                                     response_text = f"エラー: {exc}"
                                     ui.notify(f"エラー: {exc}", type="negative")
@@ -1231,7 +1466,7 @@ def show_main_page() -> None:
 
                                 phase_for_view_now = s.get("current_phase")
                                 phase_label_now = PHASE_LABELS.get(phase_for_view_now, "未推定")
-                                phase_meta_label.set_text(f"表示中の日付: {today_str} ／ Phase: {phase_label_now}")
+                                phase_status_label.set_text(PHASE_SHORT_LABELS.get(phase_for_view_now, "未推定"))
 
                                 send_button.enable()
                                 render_chat_area(chat_container, s["chat_history"])
